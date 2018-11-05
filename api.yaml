@@ -1,0 +1,29 @@
+service: api
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+env_variables:
+  env: 'dev'
+
+handlers:
+- url: /.*
+  script: api.main.server
+
+libraries:
+- name: ssl
+  version: latest
+
+skip_files:
+- ^(.*/)?.*\.py[co]$
+- ^venv$
+- .cache
+- .git
+- .idea
+- .vscode
+- bin/
+- tests/
+- .gitignore
+- dev_requirements.txt
+- requirements.txt
+- README.md
