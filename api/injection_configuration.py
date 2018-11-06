@@ -2,6 +2,7 @@
 
 import logging
 from json import loads
+from os import environ
 
 from google.auth import app_engine
 from google.oauth2.service_account import Credentials
@@ -34,14 +35,21 @@ class InjectionModule(Module):
     @provides(GoogleDirectoryApiResource)
     def provide_google_directory_api_resource(self):
         # TODO: use created service account
-        storage_credentials = app_engine.Credentials()
-        storage_client = build(u'storage', u'v1', credentials=storage_credentials)
-        key_data = storage_client.objects().get_media(bucket=u'sandbox-vincent.appspot.com',
-                                                      object=u'keys/data-key.json').execute()
-        keyfile_dict = loads(key_data)
         scopes = [u'https://www.googleapis.com/auth/admin.directory.user.readonly']
-        credentials = Credentials.from_service_account_info(keyfile_dict, scopes=scopes,
-                                                            subject=u'vtertre@test.gpartner.eu')
+        if environ.get(u'GOOGLE_APPLICATION_CREDENTIALS'):
+            keyfile_path = environ.get(u'GOOGLE_APPLICATION_CREDENTIALS')
+            credentials = Credentials.from_service_account_file(keyfile_path, scopes=scopes,
+                                                                subject=u'vtertre@test.gpartner.eu')
+        else:
+            # service_account_id = u'cloud-storage-key-rotator@sandbox-vincent.iam.gserviceaccount.com'
+            # storage_credentials = app_engine.Credentials(service_account_id=service_account_id)
+            storage_credentials = app_engine.Credentials()
+            storage_client = build(u'storage', u'v1', credentials=storage_credentials)
+            key_data = storage_client.objects().get_media(bucket=u'sandbox-vincent.appspot.com',
+                                                          object=u'keys/data-key.json').execute()
+            keyfile_dict = loads(key_data)
+            credentials = Credentials.from_service_account_info(keyfile_dict, scopes=scopes,
+                                                                subject=u'vtertre@test.gpartner.eu')
         return build(u'admin', u'directory_v1', credentials=credentials)
 
     def __configure_commands(self, binder):
