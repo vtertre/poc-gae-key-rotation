@@ -9,12 +9,15 @@ fi
 
 echo "==== Configuring dependencies for production ===="
 
-rm -rf venv libs
-virtualenv venv
-source venv/bin/activate
+if [ ! -d "venv" ]; then
+    virtualenv venv
+    source venv/bin/activate
+fi
+
+rm -rf libs
 venv/bin/pip2 install -r requirements.txt -t libs/
 
-echo "==== Configuration app for production ===="
+echo "==== Configuring app for production ===="
 
 perl -pi -e "s/'dev'/'staging'/g" api.yaml
 

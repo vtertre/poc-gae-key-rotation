@@ -4,7 +4,7 @@ from injector import inject
 from api.service.directory_api_resource import DirectoryApiResource
 
 
-class DirectoryApiService(object):
+class DirectoryService(object):
     @inject(directory_api_resource=DirectoryApiResource)
     def __init__(self, directory_api_resource):
         self.__directory_api_resource = directory_api_resource

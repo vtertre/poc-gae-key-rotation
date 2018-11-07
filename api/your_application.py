@@ -2,6 +2,7 @@
 
 from injector import inject
 
+from api.resource.synchronous_rotation_resource import SynchronousRotationResource
 from injection_configuration import create_injector
 from model.error import ErrorResolvers
 from resource.index_resource import IndexResource
@@ -14,7 +15,8 @@ class YourApplication(object):
     @staticmethod
     def routes():
         return [
-            Route(u'/', IndexResource)
+            Route(u'/', IndexResource),
+            Route(u'/rotation', SynchronousRotationResource)
         ]
 
 

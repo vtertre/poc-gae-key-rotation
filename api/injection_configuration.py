@@ -9,11 +9,14 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 from injector import singleton, Module, Injector, provides
 
+from api.http_utils import build_api_resource_from
 from api.infrastructure.bus import CommandBus, QueryBus, CommandHandlers, QueryHandlers
 from api.infrastructure.messages import CommandHandler, QueryHandler
 from api.model.error import ErrorResolver, ErrorResolvers
 from api.service.directory_api_resource import GoogleDirectoryApiResource, DirectoryApiResource
-from api.service.directory_api_service import DirectoryApiService
+from api.service.directory_service import DirectoryService
+from api.service.iam_api_resource import GoogleIAMApiResource
+from api.service.iam_service import IAMService
 from utils import find_implementations_of
 
 logger = logging.getLogger(__name__)
@@ -29,7 +32,15 @@ class InjectionModule(Module):
         self.__configure_queries(binder)
         self.__configure_resolvers(binder)
         binder.bind(DirectoryApiResource, scope=singleton)
-        binder.bind(DirectoryApiService, scope=singleton)
+        binder.bind(DirectoryService, scope=singleton)
+        binder.bind(IAMService, scope=singleton)
+
+    @singleton
+    @provides(GoogleIAMApiResource)
+    def provide_google_iam_api_resource(self):
+        # TODO: use created service account
+        credentials = app_engine.Credentials()
+        return build_api_resource_from(credentials, u'iam', u'v1')
 
     @singleton
     @provides(GoogleDirectoryApiResource)
