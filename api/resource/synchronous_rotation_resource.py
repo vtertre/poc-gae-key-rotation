@@ -13,8 +13,7 @@ class SynchronousRotationResource(BaseResource):
         super(SynchronousRotationResource, self).__init__()
         self.command_bus = command_bus
 
-    def post(self):
-        service_account_name = self._get_json_body_value_for(u'name')
-        command = RotateKeyCommand(service_account_name)
+    def post(self, service_account_id, key_id):
+        command = RotateKeyCommand(service_account_id, key_id)
         result = self.command_bus.send_and_wait_response(command)
         return result.response

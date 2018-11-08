@@ -6,7 +6,6 @@ from os import environ
 
 from google.auth import app_engine
 from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 from injector import singleton, Module, Injector, provides
 
 from api.http_utils import build_api_resource_from
@@ -35,33 +34,43 @@ class InjectionModule(Module):
         binder.bind(DirectoryService, scope=singleton)
         binder.bind(IAMService, scope=singleton)
 
+    def default_credentials(self):
+        # TODO improve & use created default service account
+        if environ.get(u'GOOGLE_APPLICATION_CREDENTIALS'):
+            keyfile_path = environ.get(u'GOOGLE_APPLICATION_CREDENTIALS')
+            credentials = Credentials.from_service_account_file(keyfile_path)
+        else:
+            credentials = app_engine.Credentials()
+        return credentials
+
+    def credentials(self, bucket, path):
+        # TODO improve & use created default service account
+        if environ.get(u'GOOGLE_APPLICATION_CREDENTIALS'):
+            keyfile_path = environ.get(u'GOOGLE_APPLICATION_CREDENTIALS')
+            credentials = Credentials.from_service_account_file(keyfile_path)
+        else:
+            storage_credentials = app_engine.Credentials()
+            storage_client = build_api_resource_from(storage_credentials, u'storage', u'v1')
+            key_data = storage_client.objects().get_media(bucket=bucket, object=path).execute()
+            keyfile_dict = loads(key_data)
+            credentials = Credentials.from_service_account_info(keyfile_dict)
+        return credentials
+
     @singleton
     @provides(GoogleIAMApiResource)
     def provide_google_iam_api_resource(self):
-        # TODO: use created service account
-        credentials = app_engine.Credentials()
+        credentials = self.default_credentials()
         return build_api_resource_from(credentials, u'iam', u'v1')
 
     @singleton
     @provides(GoogleDirectoryApiResource)
     def provide_google_directory_api_resource(self):
-        # TODO: use created service account
         scopes = [u'https://www.googleapis.com/auth/admin.directory.user.readonly']
-        if environ.get(u'GOOGLE_APPLICATION_CREDENTIALS'):
-            keyfile_path = environ.get(u'GOOGLE_APPLICATION_CREDENTIALS')
-            credentials = Credentials.from_service_account_file(keyfile_path, scopes=scopes,
-                                                                subject=u'vtertre@test.gpartner.eu')
-        else:
-            # service_account_id = u'cloud-storage-key-rotator@sandbox-vincent.iam.gserviceaccount.com'
-            # storage_credentials = app_engine.Credentials(service_account_id=service_account_id)
-            storage_credentials = app_engine.Credentials()
-            storage_client = build(u'storage', u'v1', credentials=storage_credentials)
-            key_data = storage_client.objects().get_media(bucket=u'sandbox-vincent.appspot.com',
-                                                          object=u'keys/data-key.json').execute()
-            keyfile_dict = loads(key_data)
-            credentials = Credentials.from_service_account_info(keyfile_dict, scopes=scopes,
-                                                                subject=u'vtertre@test.gpartner.eu')
-        return build(u'admin', u'directory_v1', credentials=credentials)
+        credentials = self.credentials(
+            u'sandbox-vincent.appspot.com',
+            u'keys/data-key.json'
+        ).with_scopes(scopes).with_subject(u'vtertre@test.gpartner.eu')
+        return build_api_resource_from(credentials, u'admin', u'directory_v1')
 
     def __configure_commands(self, binder):
         command_handlers = self.__implementations_of(CommandHandler)

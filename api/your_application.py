@@ -16,7 +16,8 @@ class YourApplication(object):
     def routes():
         return [
             Route(u'/', IndexResource),
-            Route(u'/rotation', SynchronousRotationResource)
+            Route(u'/serviceAccounts/<string:service_account_id>/keys/<string:key_id>:rotate',
+                  SynchronousRotationResource)
         ]
 
 

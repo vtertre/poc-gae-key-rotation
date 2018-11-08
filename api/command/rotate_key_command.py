@@ -6,8 +6,9 @@ from api.service.iam_service import IAMService
 
 
 class RotateKeyCommand(object):
-    def __init__(self, service_account_name):
-        self.service_account_name = service_account_name
+    def __init__(self, service_account_id, key_id):
+        self.service_account_id = service_account_id
+        self.key_id = key_id
 
 
 class RotateKeyCommandHandler(CommandHandler):
@@ -20,4 +21,4 @@ class RotateKeyCommandHandler(CommandHandler):
         return RotateKeyCommand
 
     def execute(self, command):
-        return self.__iam_service.list_keys_of(command.service_account_name)
+        return self.__iam_service.get_key(command.service_account_id, command.key_id)
