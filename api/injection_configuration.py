@@ -2,7 +2,7 @@
 
 import logging
 from json import loads
-from os import environ
+from os import environ, getenv
 
 from google.auth import app_engine
 from google.oauth2.service_account import Credentials
@@ -34,27 +34,31 @@ class InjectionModule(Module):
         binder.bind(DirectoryService, scope=singleton)
         binder.bind(IAMService, scope=singleton)
 
+    # TODO improve overall strategy, take advantage of injection
+
+    def default_service_account_credentials(self):
+        # TODO use created default service account
+        return app_engine.Credentials()
+
+    def google_application_credentials(self):
+        if u'GOOGLE_APPLICATION_CREDENTIALS' in environ:
+            keyfile_path = getenv(u'GOOGLE_APPLICATION_CREDENTIALS')
+            return Credentials.from_service_account_file(keyfile_path)
+        return None
+
+    def build_credentials_with_key_from(self, bucket, path):
+        storage_credentials = self.default_service_account_credentials()
+        storage_client = build_api_resource_from(storage_credentials, u'storage', u'v1')
+        key_data = storage_client.objects().get_media(bucket=bucket, object=path).execute()
+        keyfile_dict = loads(key_data)
+        return Credentials.from_service_account_info(keyfile_dict)
+
     def default_credentials(self):
-        # TODO improve & use created default service account
-        if environ.get(u'GOOGLE_APPLICATION_CREDENTIALS'):
-            keyfile_path = environ.get(u'GOOGLE_APPLICATION_CREDENTIALS')
-            credentials = Credentials.from_service_account_file(keyfile_path)
-        else:
-            credentials = app_engine.Credentials()
-        return credentials
+        # TODO : maybe use an Optional for GOOGLE_APPLICATION_CREDENTIALS => google_application_credentials.or_else(...)
+        return self.google_application_credentials() or self.default_service_account_credentials()
 
     def credentials(self, bucket, path):
-        # TODO improve & use created default service account
-        if environ.get(u'GOOGLE_APPLICATION_CREDENTIALS'):
-            keyfile_path = environ.get(u'GOOGLE_APPLICATION_CREDENTIALS')
-            credentials = Credentials.from_service_account_file(keyfile_path)
-        else:
-            storage_credentials = app_engine.Credentials()
-            storage_client = build_api_resource_from(storage_credentials, u'storage', u'v1')
-            key_data = storage_client.objects().get_media(bucket=bucket, object=path).execute()
-            keyfile_dict = loads(key_data)
-            credentials = Credentials.from_service_account_info(keyfile_dict)
-        return credentials
+        return self.google_application_credentials() or self.build_credentials_with_key_from(bucket, path)
 
     @singleton
     @provides(GoogleIAMApiResource)
