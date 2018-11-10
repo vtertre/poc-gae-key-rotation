@@ -12,6 +12,14 @@ class IAMApiResource(object):
         self.__keys_resource = api_resource.projects().serviceAccounts().keys()
 
     @WithExponentialBackoff
+    def create_key(self, service_account_resource_id, key_data):
+        return self.__keys_resource.create(name=service_account_resource_id, body=key_data).execute()
+
+    @WithExponentialBackoff
+    def delete_key(self, key_resource_id):
+        return self.__keys_resource.delete(name=key_resource_id).execute()
+
+    @WithExponentialBackoff
     def get_key(self, key_resource_id, public_key_type=None):
         return self.__keys_resource.get(name=key_resource_id, publicKeyType=public_key_type).execute()
 

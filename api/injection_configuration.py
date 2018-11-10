@@ -16,6 +16,8 @@ from api.service.directory_api_resource import GoogleDirectoryApiResource, Direc
 from api.service.directory_service import DirectoryService
 from api.service.iam_api_resource import GoogleIAMApiResource
 from api.service.iam_service import IAMService
+from api.service.storage_api_resource import GoogleStorageApiResource
+from api.service.storage_service import StorageService
 from utils import find_implementations_of
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,7 @@ class InjectionModule(Module):
         binder.bind(DirectoryApiResource, scope=singleton)
         binder.bind(DirectoryService, scope=singleton)
         binder.bind(IAMService, scope=singleton)
+        binder.bind(StorageService, scope=singleton)
 
     # TODO improve overall strategy, take advantage of injection
 
@@ -59,6 +62,12 @@ class InjectionModule(Module):
 
     def credentials(self, bucket, path):
         return self.google_application_credentials() or self.build_credentials_with_key_from(bucket, path)
+
+    @singleton
+    @provides(GoogleStorageApiResource)
+    def provide_google_storage_api_resource(self):
+        credentials = self.default_credentials()
+        return build_api_resource_from(credentials, u'storage', u'v1')
 
     @singleton
     @provides(GoogleIAMApiResource)
