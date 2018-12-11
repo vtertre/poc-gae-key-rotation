@@ -4,7 +4,7 @@ import logging
 from json import loads
 from os import environ, getenv
 
-from google.auth import app_engine
+from google.auth import app_engine, impersonated_credentials
 from google.oauth2.service_account import Credentials
 from injector import singleton, Module, Injector, provides
 
@@ -14,9 +14,9 @@ from api.infrastructure.messages import CommandHandler, QueryHandler
 from api.model.error import ErrorResolver, ErrorResolvers
 from api.service.directory_api_resource import GoogleDirectoryApiResource, DirectoryApiResource
 from api.service.directory_service import DirectoryService
-from api.service.iam_api_resource import GoogleIAMApiResource
+from api.service.iam_api_resource import GoogleIAMApiResource, IAMApiResource
 from api.service.iam_service import IAMService
-from api.service.storage_api_resource import GoogleStorageApiResource
+from api.service.storage_api_resource import GoogleStorageApiResource, StorageApiResource
 from api.service.storage_service import StorageService
 from utils import find_implementations_of
 
@@ -34,14 +34,22 @@ class InjectionModule(Module):
         self.__configure_resolvers(binder)
         binder.bind(DirectoryApiResource, scope=singleton)
         binder.bind(DirectoryService, scope=singleton)
+        binder.bind(IAMApiResource, scope=singleton)
         binder.bind(IAMService, scope=singleton)
+        binder.bind(StorageApiResource, scope=singleton)
         binder.bind(StorageService, scope=singleton)
 
-    # TODO improve overall strategy, take advantage of injection
+    # TODO improve overall strategy, watch singletons (token auto-refreshed?) take advantage of injection & configurations
+    # TODO rotate => / => invalid JWT
+    # TODO / => rotate => / => ok
 
     def default_service_account_credentials(self):
-        # TODO use created default service account
-        return app_engine.Credentials()
+        target_scopes = [u'https://www.googleapis.com/auth/cloud-platform']
+        default_service_account_credentials = app_engine.Credentials(scopes=target_scopes)
+        return impersonated_credentials.Credentials(
+            source_credentials=default_service_account_credentials,
+            target_principal=u'cloud-storage-key-rotator@sandbox-vincent.iam.gserviceaccount.com',
+            target_scopes=target_scopes)
 
     def google_application_credentials(self):
         if u'GOOGLE_APPLICATION_CREDENTIALS' in environ:
