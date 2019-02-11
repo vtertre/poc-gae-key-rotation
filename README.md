@@ -4,8 +4,10 @@ Objectives:
 - if *GOOGLE_APPLICATION_CREDENTIALS* is provided, use it
 - otherwise, use the service account specifically created
 to access the key hosted in a predefined folder on GCS
-- rotate a key synchronously
-- rotate multiple keys with a CRON configuration
+~~- rotate a key synchronously~~
+~~- rotate multiple keys with a CRON configuration~~
+- (cron) create a new key and set it as the default one (GCS)
+- (cron) delete keys older than x days
 
 ### Required APIs
 - IAM Service Account Credentials API: access token creation for service account to service account delegation

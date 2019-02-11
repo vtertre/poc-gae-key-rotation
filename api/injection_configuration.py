@@ -40,8 +40,6 @@ class InjectionModule(Module):
         binder.bind(StorageService, scope=singleton)
 
     # TODO improve overall strategy, watch singletons (token auto-refreshed?) take advantage of injection & configurations
-    # TODO rotate => / => invalid JWT
-    # TODO / => rotate => / => ok
 
     def default_service_account_credentials(self):
         target_scopes = [u'https://www.googleapis.com/auth/cloud-platform']
@@ -65,7 +63,6 @@ class InjectionModule(Module):
         return Credentials.from_service_account_info(keyfile_dict)
 
     def default_credentials(self):
-        # TODO : maybe use an Optional for GOOGLE_APPLICATION_CREDENTIALS => google_application_credentials.or_else(...)
         return self.google_application_credentials() or self.default_service_account_credentials()
 
     def credentials(self, bucket, path):
@@ -108,9 +105,9 @@ class InjectionModule(Module):
         binder.multibind(ErrorResolvers, to=resolvers, scope=singleton)
 
     def __implementations_of(self, clazz):
-        query_handlers = []
+        handlers = []
         implementations = find_implementations_of(clazz)
         for implementation in implementations:
             logger.debug(u'Found implementation for %s => %s', clazz.__name__, implementation.__name__)
-            query_handlers.append(self.__injector__.get(implementation))
-        return query_handlers
+            handlers.append(self.__injector__.get(implementation))
+        return handlers
