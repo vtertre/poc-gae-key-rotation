@@ -1,0 +1,8 @@
+cron:
+- description: Create a new default key every 5 days
+  url: /keyRotation/tasks:initiateKeyRotation
+  schedule: every 120 hours
+
+- description: Cleanup obsolete keys every day
+  url: /keyRotation/tasks:initiateKeyCleanup
+  schedule: every day 00:00
