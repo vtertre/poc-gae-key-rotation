@@ -21,8 +21,11 @@ class IAMService(object):
         return self.__iam_api_resource.create_key(service_account_resource_id, key_data)
 
     def delete_key(self, service_account_id, key_id):
-        key_resource_id = self.KEY_RESOURCE_ID_TEMPLATE.format(service_account_id, key_id)
-        return self.__iam_api_resource.delete_key(key_resource_id)
+        key_name = self.KEY_RESOURCE_ID_TEMPLATE.format(service_account_id, key_id)
+        return self.delete_key_from_name(key_name)
+
+    def delete_key_from_name(self, key_name, execute=True):
+        return self.__iam_api_resource.delete_key(key_name, execute=execute)
 
     def get_key(self, service_account_id, key_id):
         key_resource_id = self.KEY_RESOURCE_ID_TEMPLATE.format(service_account_id, key_id)
@@ -31,3 +34,6 @@ class IAMService(object):
     def list_keys_of(self, service_account_id):
         service_account_resource_id = self.SERVICE_ACCOUNT_RESOURCE_ID_TEMPLATE.format(service_account_id)
         return self.__iam_api_resource.list_keys_of(service_account_resource_id, key_types=u'USER_MANAGED')
+
+    def create_batch_request(self, callback=None):
+        return self.__iam_api_resource.create_batch_request(callback=callback)

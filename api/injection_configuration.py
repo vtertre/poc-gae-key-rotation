@@ -86,7 +86,7 @@ class InjectionModule(Module):
         scopes = [u'https://www.googleapis.com/auth/admin.directory.user.readonly']
         credentials = self.credentials(
             u'sandbox-vincent.appspot.com',
-            u'keys/data-key.json'
+            u'keys/102925455101661417546.json'
         ).with_scopes(scopes).with_subject(u'vtertre@test.gpartner.eu')
         return build_api_resource_from(credentials, u'admin', u'directory_v1')
 

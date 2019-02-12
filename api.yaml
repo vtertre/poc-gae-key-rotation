@@ -9,6 +9,7 @@ env_variables:
 handlers:
 - url: /.*
   script: api.main.server
+  # login: admin
 
 libraries:
 - name: ssl

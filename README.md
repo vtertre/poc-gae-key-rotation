@@ -15,10 +15,24 @@ to access the key hosted in a predefined folder on GCS
 - Identity and Access Management (IAM) API: key rotation
 
 ### GCS access
-read/write/delete on bucket (folder only?)
+read/write/delete on bucket
+
+#### Initiate a global key rotation
+
+HTTP GET @ `/tasks:initiateKeyRotation`
+
+#### Initiate a global key cleanup
+
+HTTP GET @ `/tasks:initiateKeyCleanup`
 
 #### Synchronous key rotation
 
-HTTP POST @ `/serviceAccounts/{service_account_id}/keys/{key_id}:rotate`
+HTTP POST @ `/serviceAccounts/{service_account_id}/keys`
+
+The service account id can either be the email or the unique id of the service account.
+
+#### Synchronous key cleanup
+
+HTTP POST @ `/serviceAccounts/{service_account_id}/keys:deleteObsoleteKeys`
 
 The service account id can either be the email or the unique id of the service account.
