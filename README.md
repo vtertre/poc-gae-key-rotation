@@ -6,8 +6,8 @@ Objectives:
 to access the key hosted in a predefined folder on GCS
 - ~~rotate a key synchronously~~
 - ~~rotate multiple keys with a CRON configuration~~
-- (cron) create a new key and set it as the default one (GCS)
-- (cron) delete keys older than x days
+- (cron) create a new key for each registered service account and set it as the default one (file stored on GCS)
+- (cron) delete keys older than x days for each registered service account
 
 ### Required APIs
 - IAM Service Account Credentials API: access token creation for service account to service account delegation
